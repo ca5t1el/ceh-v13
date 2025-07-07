@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEH v13 - Module 02: Interactive Summary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals (e.g., bg-gray-50, text-gray-800, accent-blue-600) -->
+    <!-- Application Structure Plan: A single-page application with a fixed left-hand sidebar for navigation and a dynamic main content area. This structure was chosen to break down the dense, text-heavy report into manageable, easily accessible sections, which is ideal for studying and review. User clicks a topic in the sidebar, and the corresponding content is displayed instantly via JavaScript, avoiding page reloads and providing a smooth user experience. On mobile, the sidebar is hidden by default and toggled via a hamburger menu for better screen utilization. -->
+    <!-- Visualization & Content Choices:
+    - Report Info: Footprinting Types (Passive/Active) -> Goal: Distinguish -> Viz: Styled cards -> Interaction: Hover effects -> Justification: Clear visual separation. -> Library/Method: HTML/Tailwind.
+    - Report Info: Footprinting Methodology -> Goal: Show Process -> Viz: Interactive flowchart diagram -> Interaction: Click on a phase to reveal details -> Justification: Engaging for process-oriented info. -> Library/Method: HTML/Tailwind/JS.
+    - Report Info: Information Obtained -> Goal: Categorize -> Viz: Grid of descriptive boxes -> Justification: Organizes diverse info types. -> Library/Method: HTML/Tailwind.
+    - Report Info: Google Dorks Examples -> Goal: Demonstrate -> Viz: Interactive input/output example -> Justification: Practical demonstration. -> Library/Method: HTML/Tailwind/JS.
+    - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .nav-link.active { background-color: #DBEAFE; color: #1E40AF; border-left-color: #2563EB; }
+        .nav-link:not(.active):hover { background-color: #F3F4F6; }
+        .diagram-item { cursor: pointer; transition: all 0.2s ease; }
+        .diagram-item.active, .diagram-item:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .info-card { transition: transform 0.2s ease-in-out; }
+        .info-card:hover { transform: translateY(-3px); }
+
+        /* Mobile-specific styles for sidebar */
+        .sidebar-mobile-hidden {
+            transform: translateX(-100%);
+        }
+        .sidebar-mobile-visible {
+            transform: translateX(0);
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="flex flex-col h-screen md:flex-row bg-gray-100">
+        <!-- Mobile Header -->
+        <header class="md:hidden flex items-center justify-between p-4 bg-white shadow-md">
+            <h1 class="text-xl font-bold text-gray-800">CEH v13: Module 02</h1>
+            <button id="menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-md z-50 md:relative md:translate-x-0 transition-transform duration-300 ease-in-out sidebar-mobile-hidden md:flex-shrink-0">
+            <div class="p-4 border-b">
+                <h1 class="text-xl font-bold text-gray-800">CEH v13: Module 02</h1>
+                <p class="text-sm text-gray-500">Footprinting & Reconnaissance</p>
+            </div>
+            <nav class="mt-4">
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium active" data-target="intro">1. Introduction to Footprinting</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="search-engines">2. Footprinting via Search Engines</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="internet-services">3. Footprinting via Internet Services</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="whois">4. Whois Footprinting</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="dns">5. DNS Footprinting</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="network-email">6. Network & Email Footprinting</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="social-engineering">7. Footprinting via Social Engineering</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="ai-automation">8. Automate Footprinting Tasks (AI)</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="countermeasures">9. Footprinting Countermeasures</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="module-summary">Module Summary</a>
+            </nav>
+        </aside>
+
+        <!-- Overlay for mobile sidebar -->
+        <div id="sidebar-overlay" class="overlay md:hidden"></div>
+
+        <main class="flex-1 p-6 md:p-8 lg:p-10 overflow-y-auto">
+            <div class="p-4 md:p-6 bg-white shadow-md md:shadow-none flex justify-center md:justify-start">
+                <a href="index.html" class="text-blue-600 hover:text-blue-800 font-semibold flex items-center">
+                    <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Main Modules
+                </a>
+            </div>
+            <div id="intro" class="content-section active">
+                <h2 class="text-3xl font-bold mb-4">1. Introduction to Footprinting</h2>
+                <p class="mb-8 text-lg text-gray-600">Footprinting, also known as reconnaissance, is the crucial first step in ethical hacking. It involves gathering as much information as possible about a target's IT infrastructure to identify potential vulnerabilities before launching an attack.</p>
+
+                <h3 class="text-2xl font-semibold mb-4">Types of Footprinting</h3>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-blue-50 p-6 rounded-lg shadow-md border border-blue-200 info-card">
+                        <h4 class="font-bold text-xl text-blue-800 mb-2">Passive Footprinting</h4>
+                        <p class="text-gray-700">Gathering information about the target without direct interaction. This method aims to avoid detection. Examples include OSINT, proprietary databases, and intelligence sharing.</p>
+                    </div>
+                    <div class="bg-red-50 p-6 rounded-lg shadow-md border border-red-200 info-card">
+                        <h4 class="font-bold text-xl text-red-800 mb-2">Active Footprinting</h4>
+                        <p class="text-gray-700">Gathering information with direct interaction with the target. This may leave traces and alert the target. Examples include DNS interrogation, social engineering, and network/port scanning.</p>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-4">Information Obtained</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Organization Info</h4>
+                        <p class="text-sm text-gray-600">Employee details, contact info, locations, partners, web technologies, news, legal documents.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Network Info</h4>
+                        <p class="text-sm text-gray-600">Domains, sub-domains, network blocks, topology, IP addresses, Whois/DNS records.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">System Info</h4>
+                        <p class="text-sm text-gray-600">Web server OS, location of servers, public emails, usernames/passwords.</p>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-4">Objectives & Threats</h3>
+                <p class="mb-4 text-gray-700">The main objective is to build a hacking strategy and identify vulnerabilities. However, footprinting itself poses several threats:</p>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>Social Engineering:</strong> Gathering info through persuasion.</li>
+                    <li><strong>System & Network Attacks:</strong> Exploiting discovered vulnerabilities.</li>
+                    <li><strong>Information Leakage:</strong> Sensitive data falling into wrong hands.</li>
+                    <li><strong>Privacy Loss:</strong> Escalating privileges, leading to loss of privacy.</li>
+                    <li><strong>Corporate Espionage:</strong> Competitors acquiring sensitive data.</li>
+                    <li><strong>Business Loss:</strong> Financial losses due to malicious attacks.</li>
+                </ul>
+            </div>
+
+            <div id="search-engines" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">2. Footprinting via Search Engines</h2>
+                <p class="mb-8 text-lg text-gray-600">Search engines are powerful tools for reconnaissance, often revealing critical details about a target organization. Attackers use advanced techniques to filter and extract sensitive information.</p>
+
+                <h3 class="text-2xl font-semibold mb-4">Advanced Google Hacking (Google Dorks)</h3>
+                <p class="mb-4 text-gray-700">Google Dorking uses special operators to create complex queries, exposing sensitive or hidden information. Try an example below:</p>
+                <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                    <label for="googleDorkInput" class="block text-gray-700 text-sm font-bold mb-2">Enter Google Dork:</label>
+                    <input type="text" id="googleDorkInput" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4" placeholder="e.g., intitle:&quot;index of&quot; inurl:admin">
+                    <button id="runDorkBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Run Dork (Simulated)</button>
+                    <div id="dorkResult" class="mt-4 p-3 bg-gray-100 rounded text-gray-800 text-sm italic hidden"></div>
+                    <p class="mt-4 text-gray-700">Common Google Dork Operators:</p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-700">
+                        <li>`cache:` Displays cached web pages.</li>
+                        <li>`allintitle:` Restricts results to pages with all keywords in the title.</li>
+                        <li>`link:` Lists pages linking to a specified URL.</li>
+                        <li>`intitle:` Restricts results to pages with a keyword in the title.</li>
+                        <li>`related:` Lists similar web pages.</li>
+                        <li>`allinurl:` Restricts results to pages with all keywords in the URL.</li>
+                        <li>`inurl:` Restricts results to pages with a keyword in the URL.</li>
+                        <li>`site:` Restricts results to a given domain.</li>
+                        <li>`filetype:` Searches for specific file extensions (e.g., `filetype:pdf`).</li>
+                        <li>`intext:` Searches for keywords within the body of the webpage.</li>
+                    </ul>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-4">Other Search Engine Techniques</h3>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>SHODAN Search Engine:</strong> Detects devices and networks with vulnerabilities (VoIP, VPN, IoT devices). Website: <a href="https://www.shodan.io" target="_blank" class="text-blue-600 hover:underline">shodan.io</a></li>
+                    <li><strong>Advanced/Reverse Image Search:</strong> Finds images of targets, locations, and tracks original sources. Tools: Google Image Search, TinEye Reverse Image Search, Yahoo Image Search, Bing Image Search, Pinterest Reverse Image Search.</li>
+                    <li><strong>Video Search Engines:</strong> Extracts hidden information and metadata from video content. Sites: YouTube, Google Videos, Yahoo Videos, Bing Videos. Analysis Tools: YouTube Metadata, YouTube DataViewer, MW Metadata, EZGif, VideoReverser.com.</li>
+                    <li><strong>Meta Search Engines:</strong> Sends queries to multiple search engines simultaneously for broader results. Sites: Startpage, MetaGer, eTools.ch.</li>
+                    <li><strong>FTP Search Engines:</strong> Searches for sensitive files on File Transfer Protocol (FTP) servers. Tools: NAPALM FTP Indexer, FreewareWeb FTP File Search, Mamont, Globalfilesearch.com.</li>
+                    <li><strong>IoT Search Engines:</strong> Discovers publicly accessible Internet of Things (IoT) devices. Sites: Shodan, Censys, ZoomEye.</li>
+                </ul>
+            </div>
+
+            <div id="internet-services" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">3. Footprinting via Internet Research Services</h2>
+                <p class="mb-8 text-lg text-gray-600">Beyond general search engines, various specialized internet services provide deep insights into a target organization, its employees, and its infrastructure.</p>
+
+                <h3 class="text-2xl font-semibold mb-4">Key Services & What They Reveal</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">TLDs & Sub-domains</h4>
+                        <p class="text-sm text-gray-600">Reveals organizational structure, insecure testing environments (e.g., `dev.example.com`). Tools/Sites: Netcraft (<a href="https://www.netcraft.com" target="_blank" class="text-blue-600 hover:underline">netcraft.com</a>), DNSdumpster (<a href="https://dnsdumpster.com" target="_blank" class="text-blue-600 hover:underline">dnsdumpster.com</a>), Pentest-Tools Find Subdomains (<a href="https://pentest-tools.com" target="_blank" class="text-blue-600 hover:underline">pentest-tools.com</a>).</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Archive.org (Wayback Machine)</h4>
+                        <p class="text-sm text-gray-600">Accesses historical versions of websites, retrieving deleted content like old policies, designs, or employee lists. Site: <a href="https://archive.org" target="_blank" class="text-blue-600 hover:underline">archive.org</a>. Tool: Photon (Command example: `photon.py -u <URL> --wayback`).</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">People Search Services</h4>
+                        <p class="text-sm text-gray-600">Obtains personal info (addresses, phone numbers, family, social profiles) for social engineering. Services: Spokeo (<a href="https://www.spokeo.com" target="_blank" class="text-blue-600 hover:underline">spokeo.com</a>), Intelius, pipl, BeenVerified, Whitepages, Instant Checkmate, PeekYou.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Job Sites</h4>
+                        <p class="text-sm text-gray-600">Reveals company infrastructure details (OS, software versions, network devices) from job postings. Sites: Dice, LinkedIn, Glassdoor, Simply Hired.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Dark Web Footprinting</h4>
+                        <p class="text-sm text-gray-600">Accesses hidden content for confidential info (credit cards, medical records). Tools/Sites: Tor Browser (<a href="https://www.torproject.org" target="_blank" class="text-blue-600 hover:underline">torproject.org</a>), ExoneraTor, OnionLand Search engine.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Determining OS</h4>
+                        <p class="text-sm text-gray-600">Identifies operating systems of target devices to find known vulnerabilities. Tools/Sites: Netcraft (<a href="https://www.netcraft.com" target="_blank" class="text-blue-600 hover:underline">netcraft.com</a>), Shodan (<a href="https://www.shodan.io" target="_blank" class="text-blue-600 hover:underline">shodan.io</a>), Censys (<a href="https://censys.io" target="_blank" class="text-blue-600 hover:underline">censys.io</a>).</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Competitive Intelligence</h4>
+                        <p class="text-sm text-gray-600">Ethically gathers competitor info (strategies, products) from public sources. Resources: EDGAR Database (<a href="https://www.sec.gov/edgar" target="_blank" class="text-blue-600 hover:underline">sec.gov/edgar</a>), D&B Hoovers (<a href="https://www.dnb.com" target="_blank" class="text-blue-600 hover:underline">dnb.com</a>), LexisNexis (<a href="https://www.lexisnexis.com" target="_blank" class="text-blue-600 hover:underline">lexisnexis.com</a>), Business Wire (<a href="https://www.businesswire.com" target="_blank" class="text-blue-600 hover:underline">businesswire.com</a>), Factiva (<a href="https://www.dowjones.com" target="_blank" class="text-blue-600 hover:underline">dowjones.com</a>), MarketWatch (<a href="https://www.marketwatch.com" target="_blank" class="text-blue-600 hover:underline">marketwatch.com</a>), The Wall Street Transcript (<a href="https://www.twst.com" target="_blank" class="text-blue-600 hover:underline">twst.com</a>), Euromonitor (<a href="https://www.euromonitor.com" target="_blank" class="text-blue-600 hover:underline">euromonitor.com</a>), Experian (<a href="https://www.experian.com" target="_blank" class="text-blue-600 hover:underline">experian.com</a>), The Search Monitor (<a href="https://www.thesearchmonitor.com" target="_blank" class="text-blue-600 hover:underline">thesearchmonitor.com</a>), USPTO (<a href="https://www.uspto.gov" target="_blank" class="text-blue-600 hover:underline">uspto.gov</a>), SEMRush (<a href="https://www.semrush.com" target="_blank" class="text-blue-600 hover:underline">semrush.com</a>), ABI/INFORM Global (<a href="https://www.proquest.com" target="_blank" class="text-blue-600 hover:underline">proquest.com</a>), SimilarWeb (<a href="https://www.similarweb.com" target="_blank" class="text-blue-600 hover:underline">similarweb.com</a>), SERanking (<a href="https://seranking.com" target="_blank" class="text-blue-600 hover:underline">seranking.com</a>).</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Financial Services</h4>
+                        <p class="text-sm text-gray-600">Reveals market value, company profiles, and financial news. Services: Google Finance (<a href="https://www.google.com/finance" target="_blank" class="text-blue-600 hover:underline">google.com/finance</a>), MSN Money, Yahoo Finance, Investing.com.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Business Profile Sites</h4>
+                        <p class="text-sm text-gray-600">Provides location, contact info, employee databases, and service types. Sites: opencorporates, Crunchbase, corporationwiki.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Alerting Services</h4>
+                        <p class="text-sm text-gray-600">Automated notifications for target mentions in news, blogs, etc. Services: Google Alerts (<a href="https://www.google.com/alerts" target="_blank" class="text-blue-600 hover:underline">google.com/alerts</a>), X Alerts, Giga Alerts.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Online Reputation Tracking</h4>
+                        <p class="text-sm text-gray-600">Monitors public feedback, revealing genuine company info. Tools: Mention (<a href="https://mention.com" target="_blank" class="text-blue-600 hover:underline">mention.com</a>), ReviewPush, Reputology.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Groups, Forums, Blogs</h4>
+                        <p class="text-sm text-gray-600">Employees often share personal/company info here. Sites: Google Groups, LinkedIn Groups.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Public Source-Code Repositories</h4>
+                        <p class="text-sm text-gray-600">May contain config files, private keys, source code, developer info. Sites: GitHub, GitLab, SourceForge, BitBucket. Tool: Recon-ng (Command example: `recon-ng -w <workspace>`).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="whois" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">4. Whois Footprinting</h2>
+                <p class="mb-8 text-lg text-gray-600">Whois is a query and response protocol used to query databases that store registered users or assignees of an Internet resource (e.g., domain names, IP address blocks). This information is crucial for understanding domain ownership and network structure.</p>
+
+                <h3 class="text-2xl font-semibold mb-4">Information from Whois Queries</h3>
+                <ul class="list-disc list-inside space-y-2 text-gray-700 mb-8">
+                    <li>Domain name details & registrar</li>
+                    <li>Contact details of the domain owner</li>
+                    <li>Domain name servers (NS)</li>
+                    <li>NetRange (IP address block)</li>
+                    <li>Domain creation & expiry dates</li>
+                    <li>Last updated record & domain status</li>
+                    <li>IP address information</li>
+                </ul>
+
+                <h3 class="text-2xl font-semibold mb-4">Regional Internet Registries (RIRs)</h3>
+                <p class="mb-4 text-gray-700">RIRs maintain Whois databases globally:</p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li>American Registry for Internet Numbers (ARIN) (<a href="https://www.arin.net" target="_blank" class="text-blue-600 hover:underline">arin.net</a>)</li>
+                    <li>African Network Information Center (AFRINIC) (<a href="https://www.afrinic.net" target="_blank" class="text-blue-600 hover:underline">afrinic.net</a>)</li>
+                    <li>Asia Pacific Network Information Center (APNIC) (<a href="https://www.apnic.net" target="_blank" class="text-blue-600 hover:underline">apnic.net</a>)</li>
+                    <li>Réseaux IP Européens Network Coordination Centre (RIPE NCC) (<a href="https://www.ripe.net" target="_blank" class="text-blue-600 hover:underline">ripe.net</a>)</li>
+                    <li>Latin American and Caribbean Network Information Center (LACNIC) (<a href="https://www.lacnic.net" target="_blank" class="text-blue-600 hover:underline">lacnic.net</a>)</li>
+                </ul>
+
+                <h3 class="text-2xl font-semibold mb-4 mt-8">Whois Lookup Tools</h3>
+                <p class="mb-4 text-gray-700">Tools and websites used for Whois lookups:</p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li><a href="https://whois.domaintools.com" target="_blank" class="text-blue-600 hover:underline">whois.domaintools.com</a></li>
+                    <li><a href="https://www.tamos.com" target="_blank" class="text-blue-600 hover:underline">tamos.com</a></li>
+                    <li>Batch IP Converter (<a href="http://www.sabsoft.com" target="_blank" class="text-blue-600 hover:underline">sabsoft.com</a>)</li>
+                    <li>WHOIS Domain Lookup</li>
+                    <li>Active Whois</li>
+                </ul>
+
+                <h3 class="text-2xl font-semibold mb-4 mt-8">IP Geolocation Information</h3>
+                <p class="mb-4 text-gray-700">IP geolocation helps identify a target's physical location (country, region, city, latitude/longitude, ZIP code, time zone, ISP, etc.). This can be used for targeted social engineering or malware attacks.</p>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-center text-lg font-semibold text-gray-800">Tools like IP2Location (<a href="https://www.ip2location.com" target="_blank" class="text-blue-600 hover:underline">ip2location.com</a>), IP Location Finder, and IP Address Geographical Location Finder are used to gather this data.</p>
+                </div>
+            </div>
+
+            <div id="dns" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">5. DNS Footprinting</h2>
+                <p class="mb-8 text-lg text-gray-600">DNS footprinting involves gathering information about DNS servers, DNS records, and the types of servers used by the target. This helps identify hosts in the network and potential exploitation points.</p>
+
+                <h3 class="text-2xl font-semibold mb-4">Common DNS Record Types</h3>
+                <div class="overflow-x-auto mb-8">
+                    <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                        <thead class="bg-gray-200 text-gray-700">
+                            <tr>
+                                <th class="py-3 px-4 text-left">Record Type</th>
+                                <th class="py-3 px-4 text-left">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-600">
+                            <tr><td class="py-2 px-4 border-b">A</td><td class="py-2 px-4 border-b">Points to a host's IPv4 address.</td></tr>
+                            <tr><td class="py-2 px-4 border-b">AAAA</td><td class="py-2 px-4 border-b">Points to a host's IPv6 address.</td></tr>
+                            <tr><td class="py-2 px-4 border-b">MX</td><td class="py-2 px-4 border-b">Points to domain's mail server.</td></tr>
+                            <tr><td class="py-2 px-4 border-b">NS</td><td class="py-2 px-4 border-b">Points to host's name server.</td></tr>
+                            <tr><td class="py-2 px-4 border-b">CNAME</td><td class="py-2 px-4 border-b">Canonical naming allows aliases to a host.</td></tr>
+                            <tr><td class="py-2 px-4 border-b">SOA</td><td class="py-2 px-4 border-b">Indicates authority for a domain.</td></tr>
+                            <tr><td class="py-2 px-4 border-b">SRV</td><td class="py-2 px-4 border-b">Service records.</td></tr>
+                            <tr><td class="py-2 px-4 border-b">PTR</td><td class="py-2 px-4 border-b">Maps IP address to a hostname (Reverse DNS).</td></tr>
+                            <tr><td class="py-2 px-4 border-b">TXT</td><td class="py-2 px-4 border-b">Unstructured text records (e.g., SPF, DKIM).</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-4">DNS Interrogation Tools</h3>
+                <p class="mb-4 text-gray-700">Tools used to query DNS servers and retrieve zone data, helping to map the network and identify key hosts:</p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li>SecurityTrails (<a href="https://securitytrails.com" target="_blank" class="text-blue-600 hover:underline">securitytrails.com</a>)</li>
+                    <li>Fierce (<a href="https://github.com/fierce-inc/fierce" target="_blank" class="text-blue-600 hover:underline">github.com/fierce-inc/fierce</a>)</li>
+                    <li>DNSChecker</li>
+                    <li>zdns</li>
+                    <li>DNSdumpster (<a href="https://dnsdumpster.com" target="_blank" class="text-blue-600 hover:underline">dnsdumpster.com</a>)</li>
+                    <li>Common commands: `dig`, `nslookup`</li>
+                </ul>
+
+                <h3 class="text-2xl font-semibold mb-4 mt-8">Reverse DNS Lookup</h3>
+                <p class="mb-4 text-gray-700">This process involves finding the domain name associated with a given IP address. It's useful for verifying hostnames and identifying potential targets. Tools: MxToolbox, DNSRecon.</p>
+            </div>
+
+            <div id="network-email" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">6. Network & Email Footprinting</h2>
+                <p class="mb-8 text-lg text-gray-600">These techniques focus on mapping the target's network infrastructure and analyzing email communications to gather deeper insights for potential attacks.</p>
+
+                <h3 class="text-2xl font-semibold mb-4">Locating the Network Range (Traceroute)</h3>
+                <p class="mb-4 text-gray-700">Traceroute is a network diagnostic tool used to display the route (path) and measure transit delays of packets across an IP network. It reveals the IP addresses of intermediate routers, helping to map the network topology.</p>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-center text-lg font-semibold text-gray-800">Tools like NetScanTools Pro and PingPlotter are used for network range analysis.</p>
+                    <p class="text-sm text-gray-700 mt-2">Command example: `traceroute <target_ip_or_domain>`</p>
+                </div>
+
+                <h3 class="text-2xl font-semibold mb-4 mt-8">Traceroute Analysis</h3>
+                <p class="mb-4 text-gray-700">
+                    Traceroute works by sending packets with incrementally increasing Time-to-Live (TTL) values. Each router that processes the packet decrements the TTL. When the TTL reaches zero, the router sends an ICMP "Time Exceeded" message back to the source. By analyzing these responses, the tool can identify each hop (router) in the path to the target. This provides valuable information such as:
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700 mb-4">
+                    <li>IP addresses of intermediate devices (routers, firewalls).</li>
+                    <li>Hostnames of these devices (if reverse DNS is configured).</li>
+                    <li>Round-trip time (RTT) to each hop, indicating network latency or congestion.</li>
+                    <li>Geographical locations of the hops, which can reveal the physical path data takes.</li>
+                    <li>Identification of security devices like firewalls or intrusion detection systems if they block or alter the traceroute packets.</li>
+                </ul>
+                <p class="mb-4 text-gray-700">
+                    Understanding the path taken by network traffic can help an attacker identify weak points, bypass security controls, or understand the network's architecture. Different operating systems use variations of the traceroute command (e.g., `tracert` on Windows, `traceroute` on Linux/macOS).
+                </p>
+
+                <h3 class="text-2xl font-semibold mb-4 mt-8">Tracking Email Communications</h3>
+                <p class="mb-4 text-gray-700">Analyzing email headers can reveal significant information about the sender and the email's journey. This includes the sender's IP address, geolocation, device type, and routing path.</p>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-center text-lg font-semibold text-gray-800">Tools like IP2LOCATION's Email Header Tracer (<a href="https://www.ip2location.com" target="_blank" class="text-blue-600 hover:underline">ip2location.com</a>), MxToolbox, eMailTrackerPro (<a href="http://www.emailtrackerpro.com" target="_blank" class="text-blue-600 hover:underline">emailtrackerpro.com</a>), Holehe, DNS Checker Email Header Analyzer, and Social Catfish help extract this data.</p>
+                </div>
+                <p class="mt-4 text-gray-700">Key information from email headers:</p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700">
+                    <li>Recipient's System IP address</li>
+                    <li>Geolocation of sender/recipient</li>
+                    <li>Email received and read timestamps</li>
+                    <li>Device type (desktop, mobile)</li>
+                    <li>Proxy detection</li>
+                    <li>Operating system and browser information</li>
+                </ul>
+            </div>
+
+            <div id="social-engineering" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">7. Footprinting via Social Engineering</h2>
+                <p class="mb-8 text-lg text-gray-600">Social engineering is a non-technical attack method that manipulates individuals into divulging confidential information or performing actions that compromise security. In footprinting, it's about gathering initial intelligence through human interaction.</p>
+
+                <h3 class="text-2xl font-semibold mb-4">Why Social Engineering for Footprinting?</h3>
+                <p class="mb-4 text-gray-700">
+                    People are often the weakest link in security. Social engineers exploit human psychology, trust, and curiosity to extract information that might not be available through technical means. This can include:
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-gray-700 mb-4">
+                    <li>Organizational charts and employee roles.</li>
+                    <li>Technology used (e.g., "What antivirus do we use?").</li>
+                    <li>Security policies or procedures ("What's the password reset process?").</li>
+                    <li>Physical security details (e.g., "How do I get into the server room?").</li>
+                    <li>Personal details about employees (birthdays, hobbies) for targeted phishing.</li>
+                </ul>
+
+                <h3 class="text-2xl font-semibold mb-4">Common Social Engineering Techniques for Footprinting</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Eavesdropping</h4>
+                        <p class="text-sm text-gray-600">Unauthorized listening to conversations or reading messages to gather information.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Shoulder Surfing</h4>
+                        <p class="text-sm text-gray-600">Directly observing someone's screen or keyboard to obtain sensitive information like passwords or PINs.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Dumpster Diving</h4>
+                        <p class="text-sm text-gray-600">Searching through an organization's trash for discarded documents, notes, or hardware that might contain valuable information.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Impersonation</h4>
+                        <p class="text-sm text-gray-600">Pretending to be a legitimate or authorized person (e.g., IT support, new employee, vendor) to gain trust and extract information.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Pretexting</h4>
+                        <p class="text-sm text-gray-600">Creating a fabricated scenario (pretext) to trick a target into revealing information, often involving a believable story.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow info-card">
+                        <h4 class="font-bold text-lg mb-1">Phishing/Spear Phishing</h4>
+                        <p class="text-sm text-gray-600">Sending fraudulent emails to trick recipients into revealing sensitive data or clicking malicious links. Spear phishing is highly targeted.</p>
+                    </div>
+                </div>
+                <p class="mt-8 text-gray-700">
+                    While social engineering can be highly effective, it relies heavily on human factors and requires careful planning and execution to be successful without raising suspicion.
+                </p>
+            </div>
+
+            <div id="ai-automation" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">8. Automate Footprinting Tasks Using Advanced Tools & AI</h2>
+                <p class="mb-8 text-lg text-gray-600">
+                    Advanced tools and Artificial Intelligence (AI) significantly enhance footprinting by automating data collection, processing, and analysis, allowing for more efficient and comprehensive reconnaissance.
+                </p>
+
+                <h3 class="text-2xl font-semibold mb-4">Key Footprinting Tools & AI Applications:</h3>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>AI-Powered OSINT Tools:</strong> Platforms leveraging machine learning to analyze vast amounts of open-source intelligence, identifying patterns and correlations faster than manual methods.</li>
+                    <li><strong>Recon-ng:</strong> A powerful reconnaissance framework for web-based OSINT, capable of gathering extensive information from various sources.</li>
+                    <li><strong>theHarvester:</strong> Gathers emails, subdomains, hosts, employee names, open ports, and banners from public sources like search engines and PGP key servers.</li>
+                    <li><strong>FOCA (Fingerprinting Organizations with Collected Archives):</strong> Automatically extracts metadata from files (e.g., Word, Excel, PDF, PowerPoint) to uncover hidden information such as usernames, software versions, network paths, and printer details.</li>
+                    <li><strong>Subfinder:</strong> A fast and efficient subdomain discovery tool that utilizes passive online sources to find valid subdomains for target websites.</li>
+                    <li><strong>Maltego:</strong> A graphical link analysis tool that visualizes relationships between data points (people, domains, organizations, etc.) for forensic analysis and intelligence gathering.</li>
+                    <li><strong>OSINT Framework:</strong> Not a tool itself, but a comprehensive collection of categorized OSINT tools and resources, guiding users to appropriate resources for specific information types.</li>
+                    <li><strong>Custom Scripting:</strong> Developing tailored scripts (e.g., in Python) for automated web scraping, API interaction, and parsing reconnaissance data.</li>
+                    <li><strong>Generative AI:</strong> Large Language Models (LLMs) can assist in crafting sophisticated search queries (e.g., Google Dorks), summarizing large datasets from reconnaissance, or generating potential attack scenarios based on collected intelligence.</li>
+                    <li><strong>Automated Vulnerability Scanners:</strong> While primarily for scanning, many modern scanners integrate initial reconnaissance capabilities to identify public-facing assets and enumerate services before performing deeper vulnerability checks.</li>
+                </ul>
+                <p class="mt-8 text-gray-700">
+                    These tools and AI applications enable attackers and ethical hackers to conduct more thorough and efficient reconnaissance, transforming raw data into actionable intelligence.
+                </p>
+            </div>
+
+            <div id="countermeasures" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">9. Footprinting Countermeasures</h2>
+                <p class="mb-8 text-lg text-gray-600">
+                    To protect an organization from malicious reconnaissance, implementing effective countermeasures is essential. The goal is to minimize the publicly available digital footprint and prevent attackers from gathering critical information.
+                </p>
+
+                <h3 class="text-2xl font-semibold mb-4">Key Strategies to Mitigate Footprinting Risks:</h3>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>Information Control:</strong> Strictly limit what information is publicly available on corporate websites, press releases, and marketing materials (e.g., avoid detailed internal network diagrams, specific software versions).</li>
+                    <li><strong>Privacy Settings:</strong> Ensure all social media and public profiles (both corporate and employee) are configured with the strictest privacy settings.</li>
+                    <li><strong>Regular Website Audits:</strong> Periodically review your organization's public-facing websites for inadvertently exposed sensitive data, outdated information, or misconfigurations.</li>
+                    <li><strong>DNS & Whois Privacy:</strong> Utilize privacy protection services for domain registrations to hide personal or organizational contact details in Whois records.</li>
+                    <li><strong>Employee Training & Awareness:</strong> Educate employees on social engineering risks, responsible online behavior, and the dangers of oversharing information on social media or public forums.</li>
+                    <li><strong>Active Monitoring:</strong> Implement tools and processes to monitor for mentions of your organization, its employees, or sensitive data on public platforms, including the dark web and underground forums.</li>
+                    <li><strong>Metadata Removal:</strong> Ensure all public documents, images, and files (e.g., PDFs, JPEGs) are stripped of sensitive metadata (creation dates, author names, software used).</li>
+                    <li><strong>Secure Public Code Repositories:</strong> Implement strict policies and automated checks (e.g., using `.gitignore` files, secret scanning tools) to prevent sensitive data (credentials, API keys, configuration files) from being committed to public GitHub/GitLab repositories.</li>
+                    <li><strong>Network Segmentation & Firewalls:</strong> Design network architecture with segmentation and robust firewall rules to limit external visibility of internal systems, even if IP ranges are discovered.</li>
+                    <li><strong>Patch Management:</strong> Keep all public-facing systems and software up-to-date to mitigate vulnerabilities that could be identified through version enumeration.</li>
+                    <li><strong>Secure IoT Devices & Monitor Exposure:</strong> Implement strong authentication (not default credentials) and regularly monitor IoT search engines (e.g., Shodan, Censys, ZoomEye) to identify and secure publicly exposed devices like SCADA systems, cameras, and appliances that could be exploited.</li>
+                </ul>
+                <p class="mt-8 text-gray-700">
+                    A proactive and multi-layered approach to footprinting countermeasures is vital for a strong security posture.
+                </p>
+            </div>
+
+            <div id="module-summary" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">Module Summary: Footprinting & Reconnaissance</h2>
+                <p class="mb-8 text-lg text-gray-600">
+                    This module covered the foundational phase of ethical hacking: **Footprinting and Reconnaissance**. It emphasized gathering intelligence about a target to identify vulnerabilities and build attack strategies.
+                </p>
+
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>1. Introduction to Footprinting:</strong> Defined as the initial info-gathering phase. Differentiated between Passive (undetected, e.g., OSINT) and Active (direct interaction, e.g., scanning) methods. Highlighted types of info obtained (Org, Network, System) and associated threats (Social Eng, attacks, data leakage).</li>
+                    <li><strong>2. Footprinting via Search Engines:</strong> Explored using search engines (Google, Shodan) with advanced queries (Google Dorks like `site:`, `filetype:`) to uncover sensitive data. Also covered Image, Video, Meta, FTP, and IoT search engines for specialized data.</li>
+                    <li><strong>3. Footprinting via Internet Research Services:</strong> Detailed various online services for in-depth recon. Included TLDs/Sub-domains (Netcraft, DNSdumpster), historical data (Archive.org), people search (Spokeo), job sites (infra details), Dark Web (Tor Browser), OS determination (Netcraft, Shodan, Censys), competitive intelligence, financial/business profiles, alerts, online reputation tracking, groups/forums, and public code repositories (Recon-ng).</li>
+                    <li><strong>4. Whois Footprinting:</strong> Focused on querying Whois databases for domain ownership, contact details, name servers, and IP ranges. Mentioned RIRs (ARIN, APNIC) and tools like DomainTools and IP2Location for geolocation.</li>
+                    <li><strong>5. DNS Footprinting:</strong> Explained gathering DNS server information and records (A, MX, NS, SOA, PTR) to map networks. Highlighted tools like SecurityTrails, Fierce, and `dig`/`nslookup` for DNS interrogation and reverse DNS.</li>
+                    <li><strong>6. Network & Email Footprinting:</strong> Covered mapping network paths using Traceroute (hops, RTT, OS commands like `traceroute`/`tracert`) and analyzing email headers for sender IP, geolocation, and device info (IP2LOCATION Email Header Tracer).</li>
+                    <li><strong>7. Footprinting via Social Engineering:</strong> Described manipulating individuals to reveal info. Techniques included Eavesdropping, Shoulder Surfing, Dumpster Diving, Impersonation, Pretexting, and Phishing. Emphasized human factors as the weakest link.</li>
+                    <li><strong>8. Automate Footprinting Tasks (AI):</strong> Showcased how advanced tools and AI enhance reconnaissance efficiency. Listed key tools like AI-powered OSINT platforms, Recon-ng, theHarvester, FOCA, Subfinder, Maltego, OSINT Framework, custom scripting, Generative AI, and automated vulnerability scanners.</li>
+                    <li><strong>9. Footprinting Countermeasures:</strong> Provided strategies to minimize digital footprint and protect against recon. Key actions included information control, privacy settings, website audits, DNS/Whois privacy, employee training, active monitoring, metadata removal, secure code repos, network segmentation, patch management, and securing IoT devices.</li>
+                </ul>
+                <p class="mt-8 text-lg text-gray-600 font-semibold">
+                    In essence, effective cybersecurity requires a deep understanding of how information can be gathered by adversaries and a proactive stance in protecting an organization's digital assets.
+                </p>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const diagramItems = document.querySelectorAll('.diagram-item'); // For future interactive diagrams
+            const menuButton = document.getElementById('menu-button');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            // Function to show a specific content section
+            function showSection(targetId) {
+                contentSections.forEach(section => {
+                    section.classList.toggle('active', section.id === targetId);
+                });
+                // Close sidebar on mobile after selection
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('sidebar-mobile-visible');
+                    sidebar.classList.add('sidebar-mobile-hidden');
+                    sidebarOverlay.classList.remove('active');
+                }
+            }
+
+            // Event listeners for navigation links
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-target');
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+
+                    showSection(targetId);
+                });
+            });
+
+            // Mobile menu toggle functionality
+            menuButton.addEventListener('click', function() {
+                sidebar.classList.toggle('sidebar-mobile-hidden');
+                sidebar.classList.toggle('sidebar-mobile-visible');
+                sidebarOverlay.classList.toggle('active');
+            });
+
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('sidebar-mobile-visible');
+                sidebar.classList.add('sidebar-mobile-hidden');
+                sidebarOverlay.classList.remove('active');
+            });
+
+            // Simulated Google Dork functionality
+            const googleDorkInput = document.getElementById('googleDorkInput');
+            const runDorkBtn = document.getElementById('runDorkBtn');
+            const dorkResult = document.getElementById('dorkResult');
+
+            if (runDorkBtn) {
+                runDorkBtn.addEventListener('click', function() {
+                    const dork = googleDorkInput.value.trim();
+                    let resultText = '';
+
+                    if (dork.includes('intitle:"index of"')) {
+                        resultText = `Simulated Result: Found directory listing for '${dork.replace('intitle:"index of"', '').trim()}' on a public server.`;
+                    } else if (dork.includes('filetype:pdf')) {
+                        resultText = `Simulated Result: Found PDF documents related to '${dork.replace('filetype:pdf', '').trim()}'.`;
+                    } else if (dork.includes('inurl:admin')) {
+                        resultText = `Simulated Result: Found potential admin login pages for '${dork.replace('inurl:admin', '').trim()}'.`;
+                    } else if (dork.includes('password')) {
+                        resultText = `Simulated Result: Found files potentially containing passwords for '${dork.replace('password', '').trim()}'.`;
+                    } else {
+                        resultText = `Simulated Result: Searching for '${dork}'... This could reveal sensitive information depending on the dork used.`;
+                    }
+                    dorkResult.textContent = resultText;
+                    dorkResult.classList.remove('hidden');
+                });
+            }
+
+            // Initial section display on load
+            showSection('intro');
+        });
+    </script>
+
+</body>
+</html>
