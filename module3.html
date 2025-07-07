@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEHv13 - Module 03: Scanning Networks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1, h2, h3, h4 {
+            color: #1a202c;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2c5282;
+        }
+        h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid #a0aec0;
+            padding-bottom: 0.5rem;
+            margin-top: 2.5rem;
+        }
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            color: #2d3748;
+        }
+        h4 {
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            color: #4a5568;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .image-caption {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-top: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        .section-content {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        .note {
+            background-color: #e2e8f0;
+            border-left: 4px solid #4a5568;
+            padding: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.25rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+            background-color: #f7fafc;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th {
+            background-color: #edf2f7;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        tr:nth-child(even) {
+            background-color: #fefefe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CEHv13 - Module 03: Scanning Networks</h1>
+        </header>
+
+        <section class="section-content">
+            <h2>1. Network Scanning Concepts</h2>
+            <p>Network scanning is an extended form of reconnaissance where an attacker gathers more details about a target system, including information about operating systems (OSs), services, and configuration lapses. It refers to procedures used for identifying hosts, ports, and services in a network.</p>
+            <h3>Objectives of Network Scanning</h3>
+            <ul>
+                <li>Discovering live hosts, their IP addresses, and open ports.</li>
+                <li>Discovering OSs and system architecture (also known as fingerprinting).</li>
+                <li>Discovering services running on hosts.</li>
+                <li>Identifying specific applications or versions of services.</li>
+                <li>Discovering vulnerabilities in live hosts.</li>
+                <li>Mapping out network topology.</li>
+            </ul>
+            <p>Attackers use tools like Nmap, Hping3, Metasploit, and NetScan Tools Pro for network scanning.</p>
+        </section>
+
+        <section class="section-content">
+            <h2>2. TCP Communication Flags</h2>
+            <p>The TCP header contains six control flags (each 1 bit) that manage connections and provide instructions.</p>
+            <img src="image1.png" alt="TCP Communication Flags Diagram">
+            <p class="image-caption">Figure: TCP Communication Flags</p>
+            <ul>
+                <li><strong>SYN (Synchronize):</strong> Notifies transmission of a new sequence number, generally for connection establishment (three-way handshake).</li>
+                <li><strong>ACK (Acknowledgement):</strong> Confirms packet receipt and identifies the next expected sequence number.</li>
+                <li><strong>PSH (Push):</strong> Instructs the remote system to inform the receiving application about buffered data immediately.</li>
+                <li><strong>URG (Urgent):</strong> Instructs the system to process data in packets immediately, prioritizing urgent data.</li>
+                <li><strong>FIN (Finish):</strong> Announces no more transmissions will be sent, terminating the connection.</li>
+                <li><strong>RST (Reset):</strong> Aborts the connection due to an error. Attackers use this flag to scan hosts and identify open ports.</li>
+            </ul>
+            <p>SYN scanning primarily involves SYN, ACK, and RST flags for gathering information from servers.</p>
+        </section>
+
+        <section class="section-content">
+            <h2>3. TCP/IP Communication</h2>
+            <h3>TCP Session Establishment (Three-way Handshake)</h3>
+            <ol>
+                <li>Source sends a SYN packet to the destination.</li>
+                <li>Destination responds with a SYN/ACK packet.</li>
+                <li>Source sends an ACK packet, triggering an "OPEN" connection.</li>
+            </ol>
+            <h3>TCP Session Termination</h3>
+            <ol>
+                <li>Sender sends a FIN or RST packet to the receiver.</li>
+                <li>Receiver acknowledges with an ACK packet and then sends its own FIN packet.</li>
+                <li>The connection is then terminated.</li>
+            </ol>
+        </section>
+
+        <section class="section-content">
+            <h2>4. Scanning Tools</h2>
+            <h3>Nmap (Network Mapper)</h3>
+            <ul>
+                <li>Identifies hosts, ports, and services by sending crafted packets and analyzing responses.</li>
+                <li>Used for network inventory, managing service upgrade schedules, monitoring uptime (administrators), and extracting information like live hosts, open ports, services (application name and version), packet filters/firewalls, MAC details, and OSs (attackers).</li>
+                <li>Syntax: <code>nmap &lt;options&gt; &lt;Target IP address&gt;</code></li>
+            </ul>
+            <h3>Hping3</h3>
+            <ul>
+                <li>Command-line tool for network scanning and packet crafting (TCP/IP protocol).</li>
+                <li>Supports TCP, UDP, ICMP, and raw-IP protocols.</li>
+                <li>Performs security auditing, firewall testing, MTU discovery, traceroute, remote OS fingerprinting, uptime guessing, TCP/IP stack auditing.</li>
+                <li>Can send custom TCP/IP packets and display replies like ping.</li>
+            </ul>
+            <h4>Hping Commands:</h4>
+            <ul>
+                <li>ICMP ping (<code>-1</code> or <code>--ICMP</code>)</li>
+                <li>ACK scan (<code>-A</code>) to probe for firewalls.</li>
+                <li>UDP scan (<code>-2</code> or <code>--udp</code>).</li>
+                <li>Collect Initial Sequence Number (<code>-Q</code>).</li>
+                <li>Firewalls and Timestamps (<code>--tcp-timestamp</code>) to guess timestamp update frequency and uptime.</li>
+                <li>SYN scan on port range (<code>-8</code> or <code>--scan</code> with <code>-S</code>).</li>
+                <li>FIN, PUSH, and URG scan (<code>-F -P -U</code>).</li>
+                <li>Scan entire subnet for live hosts (<code>-1 &lt;subnet&gt;.x --rand-dest -I &lt;interface&gt;</code>).</li>
+                <li>Intercept traffic containing a signature (<code>-9 HTTP -I &lt;interface&gt;</code>).</li>
+            </ul>
+            <p>Can leverage AI (e.g., ChatGPT) to generate commands.</p>
+            <h3>Metasploit</h3>
+            <ul>
+                <li>Open-source project for penetration tests and security auditing.</li>
+                <li>Provides information on vulnerabilities, aids in penetration testing and IDS signature development.</li>
+                <li>Modular approach allows combining exploits with payloads.</li>
+                <li>Automates discovery and exploitation.</li>
+                <li>Metasploit Pro can scan for open ports/services, exploit vulnerabilities, pivot, collect evidence, and report.</li>
+                <li>Can be guided by AI for port scanning.</li>
+            </ul>
+            <h3>NetScan Tools Pro</h3>
+            <ul>
+                <li>Investigation tool for troubleshooting, monitoring, discovering, and detecting network devices.</li>
+                <li>Gathers information about local LAN, Internet users, IP addresses, and ports.</li>
+                <li>Helps find vulnerabilities and exposed ports.</li>
+            </ul>
+            <h3>Other Scanning Tools</h3>
+            <ul>
+                <li>sx</li>
+                <li>RustScan</li>
+                <li>MegaPing</li>
+                <li>SolarWinds Engineer's Toolset</li>
+                <li>PRTG Network Monitor</li>
+            </ul>
+        </section>
+
+        <section class="section-content">
+            <h2>5. Host Discovery Techniques</h2>
+            <p>Host discovery is the primary task in network scanning to identify "alive" and responding systems. It avoids scanning every port on inactive systems.</p>
+            <img src="image2.png" alt="Host Discovery Techniques Diagram">
+            <p class="image-caption">Figure: Host Discovery Techniques</p>
+            <h3>ARP Ping Scan</h3>
+            <ul>
+                <li>Sends ARP packets to discover active devices in an IPv4 range, even behind firewalls.</li>
+                <li>If a host is active, it generates an ARP response.</li>
+                <li>Nmap's <code>-PR</code> option performs ARP ping scan. (<code>-sn</code> disables port scan).</li>
+                <li>Advantages: Efficient, accurate, handles retransmission/timeout, useful for large address spaces, displays response time.</li>
+            </ul>
+            <h3>UDP Ping Scan</h3>
+            <ul>
+                <li>Nmap sends UDP packets to the target (default port 40125).</li>
+                <li>UDP response means the host is active.</li>
+                <li>Error messages (host/network unreachable, TTL exceeded) indicate offline/unreachable host.</li>
+                <li>Nmap's <code>-PU</code> option performs UDP ping scan.</li>
+                <li>Advantage: Can detect systems behind firewalls with strict TCP filtering.</li>
+            </ul>
+            <h3>ICMP ECHO Ping Scan</h3>
+            <ul>
+                <li>Sends ICMP ECHO requests; active hosts return an ICMP ECHO reply.</li>
+                <li>Useful for locating active devices or checking if ICMP passes through a firewall.</li>
+                <li>Works on UNIX/Linux and BSD-based machines that respond to broadcast ICMP echo requests.</li>
+                <li>Nmap's <code>-PE</code> option performs ICMP ECHO ping scan.</li>
+            </ul>
+            <h3>ICMP ECHO Ping Sweep</h3>
+            <ul>
+                <li>Sends ICMP ECHO requests to multiple hosts in an IP address range.</li>
+                <li>Active hosts return an ICMP ECHO reply.</li>
+                <li>Nmap's <code>-PE</code> option with an IP range performs ICMP ECHO ping sweep.</li>
+            </ul>
+            <h3>ICMP Timestamp Ping Scan</h3>
+            <ul>
+                <li>Attackers query a timestamp message to get current time information from the target.</li>
+                <li>Effective for identifying active hosts even when traditional ICMP ECHO pings are blocked.</li>
+                <li>Nmap's <code>-PP</code> option performs ICMP timestamp ping scan.</li>
+            </ul>
+            <h3>ICMP Address Mask Ping Scan</h3>
+            <ul>
+                <li>Attackers send an ICMP address mask query to get subnet mask information.</li>
+                <li>Also effective for identifying active hosts when traditional ICMP Echo ping is blocked.</li>
+                <li>Nmap's <code>-PM</code> option performs ICMP address mask ping scan.</li>
+            </ul>
+            <h3>TCP SYN Ping Scan</h3>
+            <ul>
+                <li>Attacker sends an empty TCP SYN flag to the target.</li>
+                <li>If the target responds with SYN/ACK, the host is active; the attacker then sends an RST to terminate.</li>
+                <li>Port 80 is the default destination port.</li>
+                <li>Nmap's <code>-PS</code> option performs TCP SYN ping scan.</li>
+                <li>Advantages: Can determine if a host is active without creating a full connection, leaving no traces in logs.</li>
+            </ul>
+            <h3>TCP ACK Ping Scan</h3>
+            <ul>
+                <li>Attacker sends an empty TCP ACK packet to the target.</li>
+                <li>Target responds with an RST flag, indicating the host is active.</li>
+                <li>Default port is 80.</li>
+                <li>Nmap's <code>-PA</code> option performs TCP ACK ping scan.</li>
+                <li>Advantage: Can bypass firewalls configured to block SYN packets.</li>
+            </ul>
+            <h3>IP Protocol Ping Scan</h3>
+            <ul>
+                <li>Sends IP ping packets with the IP header of a specified protocol number.</li>
+                <li>Any response indicates the host is online.</li>
+                <li>Nmap's <code>-PO</code> option performs IP protocol ping scan.</li>
+            </ul>
+            <h3>Ping Sweep Tools</h3>
+            <ul>
+                <li>Angry IP Scanner</li>
+                <li>SolarWinds Engineer's Toolset</li>
+                <li>NetScanTools Pro</li>
+                <li>Colasoft Ping Tool</li>
+                <li>Advanced IP Scanner</li>
+                <li>OpUtils</li>
+            </ul>
+            <h3>Host Discovery with AI</h3>
+            <p>Attackers can use AI (e.g., ChatGPT) to automate host discovery tasks and generate commands for tools like Nmap.</p>
+        </section>
+
+        <section class="section-content">
+            <h2>6. Port and Service Discovery</h2>
+            <p>Port and service discovery involves checking open ports and services on live systems using various port scanning techniques. Attackers use this to identify open ports and running services to compromise the network.</p>
+            <h3>Common Ports and Services</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Port/Protocol</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>echo</td><td>7/tcp, udp</td><td></td></tr>
+                    <tr><td>discard</td><td>9/tcp udp</td><td>sink null</td></tr>
+                    <tr><td>systat</td><td>11/tcp</td><td>Users</td></tr>
+                    <tr><td>daytime</td><td>13/tcp, udp</td><td></td></tr>
+                    <tr><td>netstat</td><td>15/tcp, udp</td><td></td></tr>
+                    <tr><td>qotd</td><td>17/tcp, udp</td><td>Quote</td></tr>
+                    <tr><td>chargen</td><td>19/tcp udp</td><td>ttytst source</td></tr>
+                    <tr><td>ftp-data</td><td>20/tcp</td><td>ftp data transfer</td></tr>
+                    <tr><td>ftp</td><td>21/tcp</td><td>ftp command</td></tr>
+                    <tr><td>ssh</td><td>22/tcp</td><td>Secure Shell</td></tr>
+                    <tr><td>telnet</td><td>23/tcp</td><td></td></tr>
+                    <tr><td>SMTP</td><td>25/tcp</td><td>Email server</td></tr>
+                    <tr><td>time</td><td>37/tcp, udp</td><td>Timeserver</td></tr>
+                    <tr><td>rlp</td><td>39/tcp, udp</td><td>resource location</td></tr>
+                    <tr><td>domain</td><td>53/tcp, udp</td><td>domain name server</td></tr>
+                    <tr><td>sql*net</td><td>66/tcp, udp</td><td>Oracle SQL*net</td></tr>
+                    <tr><td>bootps</td><td>67/udp</td><td>bootp server</td></tr>
+                    <tr><td>bootpc</td><td>68/udp</td><td>bootp client</td></tr>
+                    <tr><td>tftp</td><td>69/udp</td><td>Trivial File Transfer</td></tr>
+                    <tr><td>gopher</td><td>70/tcp</td><td>gopher server</td></tr>
+                    <tr><td>finger</td><td>79/tcp</td><td>Finger</td></tr>
+                    <tr><td>www-http</td><td>80/tcp udp</td><td>WWW</td></tr>
+                    <tr><td>www-https</td><td>80/tcp</td><td>www</td></tr>
+                    <tr><td>kerberos</td><td>88/tcp, udp</td><td>Kerberos</td></tr>
+                    <tr><td>pop2</td><td>109/tcp</td><td>PostOffice V.2</td></tr>
+                    <tr><td>Pop3</td><td>110/tcp</td><td>PostOffice V.3</td></tr>
+                    <tr><td>sunrpc</td><td>111/tcp, udp</td><td>RPC 4.0 portmapper</td></tr>
+                    <tr><td>auth/ident</td><td>113/tcp, udp</td><td>Authentication Service</td></tr>
+                    <tr><td>audionews</td><td>114/tcp, udp</td><td>Audio News Multicast</td></tr>
+                    <tr><td>nntp</td><td>119/tcp</td><td>Usenet Network News Transfer</td></tr>
+                    <tr><td>ntp</td><td>123/udp</td><td>Network Time Protocol</td></tr>
+                    <tr><td>netbios-ns</td><td>137/tcp udp</td><td>NETBIOS Name Service</td></tr>
+                    <tr><td>netbios-dgm</td><td>138/tcp, udp</td><td>NETBIOS Datagram Service</td></tr>
+                    <tr><td>netbios-ssn</td><td>139/tcp, udp</td><td>NETBIOS Session Service</td></tr>
+                    <tr><td>imap</td><td>143/tcp, udp</td><td>Internet Message Access Protocol</td></tr>
+                    <tr><td>sql-net</td><td>150/tcp, udp</td><td>SQL-NET</td></tr>
+                    <tr><td>sqlsrv</td><td>156/tcp, udp</td><td>SQL Service</td></tr>
+                    <tr><td>snmp</td><td>161/tcp, udp</td><td>SNMP</td></tr>
+                    <tr><td>snmp-trap</td><td>162/tcp, udp</td><td></td></tr>
+                    <tr><td>cmip-man</td><td>163/tcp, udp</td><td>CMIP/TCP Manager</td></tr>
+                    <tr><td>cmip-agent</td><td>164/tcp, udp</td><td>CMIP/TCP Agent</td></tr>
+                    <tr><td>irc</td><td>194/tcp, udp</td><td>Internet Relay Chat</td></tr>
+                    <tr><td>at-rtmp</td><td>201/tcp, udp</td><td>AppleTalk Routing Maintenance</td></tr>
+                    <tr><td>at-nbp</td><td>202/tcp, udp</td><td>AppleTalk Name Binding</td></tr>
+                    <tr><td>at-3</td><td>203/tcp, udp</td><td>AppleTalk</td></tr>
+                    <tr><td>at-echo</td><td>204/tcp, udp</td><td>AppleTalk Echo</td></tr>
+                    <tr><td>at-5</td><td>205/tcp, udp</td><td>AppleTalk</td></tr>
+                    <tr><td>at-zis</td><td>206/tcp, udp</td><td>AppleTalk Zone Information</td></tr>
+                    <tr><td>at-7</td><td>207/tcp, udp</td><td>AppleTalk</td></tr>
+                    <tr><td>at-8</td><td>208/tcp, udp</td><td>AppleTalk</td></tr>
+                    <tr><td>ipx</td><td>213/tcp, udp</td><td>Novell</td></tr>
+                    <tr><td>imap3</td><td>220/tcp, udp</td><td>Interactive Mail Access Protocol v3</td></tr>
+                    <tr><td>aurp</td><td>387/tcp, udp</td><td>AppleTalk Update-Based Routing</td></tr>
+                    <tr><td>netware-ip</td><td>396/tcp, udp</td><td>Novell Netware over IP</td></tr>
+                    <tr><td>rmt</td><td>411/tcp, udp</td><td>Remote mt</td></tr>
+                    <tr><td>kerberos-ds</td><td>445/tcp, udp</td><td>Microsoft DS</td></tr>
+                    <tr><td>isakmp</td><td>500/udp</td><td>ISAKMP/IKE</td></tr>
+                    <tr><td>fcp</td><td>510/tcp</td><td>First Class Server</td></tr>
+                    <tr><td>exec</td><td>512/tcp</td><td>BSD rexecd(8)</td></tr>
+                    <tr><td>comsat/biff</td><td>512/udp</td><td>Used by mail system to notify users</td></tr>
+                    <tr><td>login</td><td>513/tcp</td><td>BSD rlogind(8)</td></tr>
+                    <tr><td>who</td><td>513/udp</td><td>whod BSD rwhod(8)</td></tr>
+                    <tr><td>shell</td><td>514/tcp</td><td>cmd BSD rshd(8)</td></tr>
+                    <tr><td>syslog</td><td>514/udp</td><td>BSD syslogd(8)</td></tr>
+                    <tr><td>printer</td><td>515/tcp, udp</td><td>spooler BSD Ipd(8)</td></tr>
+                    <tr><td>talk</td><td>517/tcp, udp</td><td>BSD talkd(8)</td></tr>
+                    <tr><td>ntalk</td><td>518/udp</td><td>SunOS talkd(8)</td></tr>
+                    <tr><td>netnews</td><td>532/tcp, udp</td><td>Readnews</td></tr>
+                    <tr><td>uucp</td><td>540/tcp, udp</td><td>uucpd BSD uucpd(8)</td></tr>
+                    <tr><td>klogin</td><td>543/tcp, udp</td><td>Kerberos Login</td></tr>
+                    <tr><td>kshell</td><td>544/tcp, udp</td><td>Kerberos Shell</td></tr>
+                    <tr><td>ekshell</td><td>545/tcp</td><td>krcmd Kerberos encrypted remote shell -kfall</td></tr>
+                    <tr><td>pcserver</td><td>600/tcp</td><td>ECD Integrated PC board srvr</td></tr>
+                    <tr><td>mount</td><td>635/udp</td><td>NFS Mount Service</td></tr>
+                    <tr><td>pcnfs</td><td>640/udp</td><td>PC-NFS DOS Authentication</td></tr>
+                    <tr><td>bwnfs</td><td>650/udp</td><td>BW-NFS DOS Authentication</td></tr>
+                    <tr><td>flexlm</td><td>744/tcp, udp</td><td>Flexible License Manager</td></tr>
+                    <tr><td>kerberos-adm</td><td>749/tcp, udp</td><td>Kerberos Administration</td></tr>
+                    <tr><td>kerberos</td><td>750/tcp, udp</td><td>kdc Kerberos authentication</td></tr>
+                    <tr><td>kerberos_master</td><td>751/tcp, udp</td><td>Kerberos authentication</td></tr>
+                    <tr><td>krb_prop</td><td>754/tcp</td><td>Kerberos slave propagation</td></tr>
+                    <tr><td>applix</td><td>999/udp</td><td>Applixware</td></tr>
+                    <tr><td>socks</td><td>1080/tcp, udp</td><td>Socks Proxy</td></tr>
+                    <tr><td>kpop</td><td>1109/tcp</td><td>Pop with Kerberos</td></tr>
+                    <tr><td>ms-sql-s</td><td>1433/tcp, udp</td><td>Microsoft SQL Server</td></tr>
+                    <tr><td>ms-sql-m</td><td>1434/tcp, udp</td><td>Microsoft SQL Monitor</td></tr>
+                    <tr><td>pptp</td><td>1723/tcp, udp</td><td>Pptp</td></tr>
+                    <tr><td>nfs</td><td>2049/tcp, udp</td><td>Network File System</td></tr>
+                    <tr><td>eklogin</td><td>2105/tcp</td><td>Kerberos encrypted rlogin</td></tr>
+                    <tr><td>rkinit</td><td>2108/tcp</td><td>Kerberos remote kinit</td></tr>
+                    <tr><td>kx</td><td>2111/tcp</td><td>X over Kerberos</td></tr>
+                    <tr><td>kauth</td><td>2120/tcp</td><td>Remote kauth</td></tr>
+                    <tr><td>lyskom</td><td>4894/tcp</td><td>LysKOM (conference system)</td></tr>
+                    <tr><td>sip</td><td>5060/tcp</td><td>Session Initiation Protocol</td></tr>
+                    <tr><td>sip</td><td>5060/udp</td><td>Session Initiation Protocol</td></tr>
+                    <tr><td>x11</td><td>6000-6063/tcp, udp</td><td>X Window System</td></tr>
+                    <tr><td>irc</td><td>6667/tcp</td><td>Internet Relay Chat</td></tr>
+                </tbody>
+            </table>
+            <h3>Port Scanning Techniques</h3>
+            <img src="image3.png" alt="Port Scanning Techniques Diagram">
+            <p class="image-caption">Figure: Port Scanning Techniques</p>
+            <h4>TCP Connect/Full-Open Scan</h4>
+            <ul>
+                <li>Most reliable TCP scanning.</li>
+                <li>Uses OS's <code>connect()</code> system call to open a full three-way handshake.</li>
+                <li>If port is listening, connection is successful; otherwise, an error.</li>
+                <li>Scanner sends RST to close after handshake.</li>
+                <li>Nmap's <code>-sT</code> option performs this scan.</li>
+                <li>Drawback: Easily detectable and filterable, logs connections.</li>
+            </ul>
+            <h4>Stealth Scan (Half-Open Scan / SYN Scan)</h4>
+            <ul>
+                <li>Resets TCP connection abruptly before completing the three-way handshake, leaving it half-open.</li>
+                <li>Sends only a SYN packet.</li>
+                <li>If port is open, server responds with SYN/ACK; client then sends RST.</li>
+                <li>If port is closed, server responds with RST.</li>
+                <li>Bypasses firewall rules and logging mechanisms by appearing as regular traffic.</li>
+                <li>Nmap's <code>-sS</code> option performs this scan.</li>
+            </ul>
+            <h4>Inverse TCP Flag Scan (FIN, Xmas, NULL)</h4>
+            <ul>
+                <li>Sends TCP probe packets with specific flags set (FIN, URG, PSH) or no flags (NULL).</li>
+                <li>If port is open, no response is received.</li>
+                <li>If port is closed, an RST is received.</li>
+                <li>Relies on RFC 793 behavior (RST/ACK for closed ports).</li>
+                <li>Advantages: Avoids many IDS and logging systems, highly stealthy.</li>
+                <li>Disadvantages: Requires super-user privileges, mostly effective against BSD-derived TCP/IP stacks (not Microsoft Windows).</li>
+                <li><strong>Xmas Scan:</strong> FIN, URG, and PUSH flags set. Nmap's <code>-sX</code> option.</li>
+                <li><strong>FIN Scan:</strong> Only FIN flag set. Nmap's <code>-sF</code> option.</li>
+                <li><strong>NULL Scan:</strong> No TCP flags set. Nmap's <code>-sN</code> option.</li>
+            </ul>
+            <h4>TCP Maimon Scan</h4>
+            <ul>
+                <li>Similar to NULL, FIN, Xmas scans, but uses FIN/ACK probe.</li>
+                <li>Open/filtered if no response; closed if RST packet; filtered if ICMP unreachable error.</li>
+                <li>Nmap's <code>-sM</code> option.</li>
+            </ul>
+            <h4>ACK Flag Probe Scan</h4>
+            <ul>
+                <li>Sends TCP probe packets with ACK flag set and analyzes TTL and WINDOW fields of received RST packets.</li>
+                <li>Exploits vulnerabilities in BSD-derived TCP/IP stacks.</li>
+                <li><strong>TTL-Based:</strong> Open if TTL &lt; 64. Nmap's <code>-ttl</code> option.</li>
+                <li><strong>Window-Based:</strong> Open if window value is non-zero. Nmap's <code>-sW</code> option.</li>
+                <li>Advantages: Can evade IDS.</li>
+                <li>Disadvantages: Slow, exploits older OSs.</li>
+                <li>Also helps check filtering systems: no response to ACK probe implies filtered (stateful firewall); RST response implies not filtered. Nmap's <code>-sA</code> option.</li>
+            </ul>
+            <h4>IDLE/IPID Header Scan</h4>
+            <ul>
+                <li>Sends a spoofed source address to a computer, using a "zombie" host.</li>
+                <li>Relies on the IP ID (IPID) that increments for each packet sent by an OS.</li>
+                <li>By observing changes in the zombie's IPID, attacker infers if the target port is open.</li>
+                <li>Nmap's <code>-sI</code> option.</li>
+            </ul>
+            <h4>UDP Scan</h4>
+            <ul>
+                <li>No three-way handshake.</li>
+                <li>If a UDP packet is sent to a closed port, an ICMP port unreachable packet is returned.</li>
+                <li>No response or ICMP error indicates open or filtered port.</li>
+                <li>UDP scanners interpret lost traffic as open ports.</li>
+                <li>Nmap's <code>-sU</code> option.</li>
+                <li>Advantages: Less overhead than TCP handshake, efficient on Windows (due to less ICMP rate limiting).</li>
+                <li>Disadvantages: Provides only port information (needs version detection for more info), requires privileged access, low efficiency due to massive TCP traffic.</li>
+            </ul>
+            <h4>SCTP INIT Scan</h4>
+            <ul>
+                <li>Stream Control Transport Protocol (SCTP) is an alternative to TCP/UDP, used for multi-homing/multi-streaming (VoIP, IP telephony).</li>
+                <li>Similar to TCP SYN scan, sends INIT chunk.</li>
+                <li>Open port responds with INIT+ACK chunk; closed port responds with ABORT chunk.</li>
+                <li>Nmap's <code>-sY</code> option.</li>
+                <li>Advantage: Clearly differentiates open, closed, and filtered states.</li>
+            </ul>
+            <h4>SCTP COOKIE ECHO Scan</h4>
+            <ul>
+                <li>Attacker sends COOKIE ECHO chunk.</li>
+                <li>Open port silently drops packets (no response); closed port sends ABORT chunk.</li>
+                <li>Not blocked by non-stateful firewalls.</li>
+                <li>Nmap's <code>-sZ</code> option.</li>
+                <li>Disadvantage: Cannot clearly differentiate between open and filtered ports (shows "open|filtered").</li>
+            </ul>
+            <h4>SSDP Scan</h4>
+            <ul>
+                <li>Simple Service Discovery Protocol (SSDP) communicates with machines using routable IPv4/IPv6 multicast addresses.</li>
+                <li>Used to control Universal Plug and Play (UPnP) feature.</li>
+                <li>Helps detect UPnP vulnerabilities for buffer overflow or DoS attacks.</li>
+                <li>Metasploit's <code>auxiliary/scanner/upnp/ssdp_search</code> module can be used.</li>
+            </ul>
+            <h4>List Scan</h4>
+            <ul>
+                <li>Indirect discovery of active hosts; generates and prints a list of IPs/names without pinging or scanning.</li>
+                <li>Shows all IPs as "not scanned."</li>
+                <li>Performs reverse DNS resolution by default.</li>
+                <li>Nmap's <code>-sL</code> option.</li>
+                <li>Advantage: Good sanity check for incorrectly defined IP addresses.</li>
+            </ul>
+            <h4>IPv6 Scan</h4>
+            <ul>
+                <li>More difficult and complex than IPv4 due to larger search space (2<sup>64</sup> addresses).</li>
+                <li>Few tools support IPv6 ping sweeps.</li>
+                <li>Attackers harvest IPv6 addresses from network traffic/logs.</li>
+                <li>Nmap's <code>-6</code> option.</li>
+            </ul>
+            <h3>Port Scanning with AI</h3>
+            <p>Attackers can use AI (e.g., ChatGPT) to automate port scanning tasks and generate commands.</p>
+        </section>
+
+        <section class="section-content">
+            <h2>7. Service Version Discovery</h2>
+            <p>Service version detection helps attackers to obtain information about running services and their versions. Accurate version numbers allow attackers to determine specific exploits.</p>
+            <ul>
+                <li>Nmap's <code>-sV</code> option is used for service version detection.</li>
+            </ul>
+            <h3>Service Version Discovery with AI</h3>
+            <p>AI can automate these tasks and generate Nmap commands for scanning open ports, MAC details, and service versions.</p>
+        </section>
+
+        <section class="section-content">
+            <h2>8. Nmap Scan Time Reduction Techniques</h2>
+            <ul>
+                <li><strong>Omit Non-critical Tests:</strong> Avoid intense scans if minimal information is needed, limit ports, skip port scans if only checking host online status, avoid advanced scan types (<code>-sC</code>, <code>-sV</code>, <code>-O</code>, <code>--traceroute</code>, <code>-A</code>), turn on DNS resolution only when necessary.</li>
+                <li><strong>Optimize Timing Parameters:</strong> Use Nmap's timing aggressiveness options for filtered networks.</li>
+                <li><strong>Separate and Optimize UDP Scans:</strong> Scan UDP separately due to different performance and timing characteristics, and its higher susceptibility to ICMP error rate-limiting.</li>
+                <li><strong>Upgrade Nmap:</strong> Use upgraded versions for bug fixes, algorithmic enhancements, and features like local network ARP scanning.</li>
+                <li><strong>Execute Concurrent Nmap Instances:</strong> Divide the scan into groups and run simultaneously for overall speed improvement.</li>
+                <li><strong>Scan from a Favorable Network Location:</strong> Scan from the host's local network when in the internal network for defense-in-depth security. External scanning is for firewall testing or external attacker viewpoint.</li>
+                <li><strong>Increase Available Bandwidth and CPU Time:</strong> Reduce scan time by increasing bandwidth or CPU power (e.g., installing new data lines, stopping other applications). Nmap's congestion control algorithms prevent network flooding and improve accuracy.</li>
+            </ul>
+        </section>
+
+        <section class="section-content">
+            <h2>9. OS Discovery (Banner Grabbing/OS Fingerprinting)</h2>
+            <p>OS discovery, or "banner grabbing," is a method used to determine the OS running on a remote target system. It is important as many vulnerabilities are OS-specific.</p>
+            <h3>Active Banner Grabbing</h3>
+            <ul>
+                <li>Sends specially crafted TCP packets to the remote OS and notes responses.</li>
+                <li>Responses vary due to different TCP/IP stack implementations.</li>
+                <li>Nmap uses a series of nine tests (TCP packets with various flag combinations, UDP packets, TCP sequence ability test) to determine OS fingerprint.</li>
+                <li>Nmap's <code>-O</code> option performs OS discovery.</li>
+                <li>Unicornscan can also identify OS by observing TTL values.</li>
+                <li>Nmap Scripting Engine (NSE) scripts (e.g., <code>smb-os-discovery</code>) can collect OS information.</li>
+                <li>IPv6 Fingerprinting also used (18 probes, separate engine). Nmap's <code>-6 -O</code> option.</li>
+            </ul>
+            <h3>Passive Banner Grabbing</h3>
+            <p>Captures packets from the target host via sniffing to study telltale signs that can reveal an OS.</p>
+            <ul>
+                <li>Banner grabbing from error messages (server type, OS type, SSL tool).</li>
+                <li>Sniffing network traffic.</li>
+                <li>Banner grabbing from page extensions (e.g., .aspx for IIS/Windows).</li>
+            </ul>
+            <h4>Key areas for passive fingerprinting:</h4>
+            <ul>
+                <li>TTL (Time To Live)</li>
+                <li>Window Size</li>
+                <li>DF (Don't Fragment) bit</li>
+                <li>TOS (Type of Service)</li>
+            </ul>
+            <p>Wireshark can be used to observe TTL and TCP window size fields.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operating System</th>
+                        <th>Time To Live</th>
+                        <th>TCP Window Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Linux</td><td>64</td><td>5840</td></tr>
+                    <tr><td>FreeBSD</td><td>64</td><td>65535</td></tr>
+                    <tr><td>OpenBSD</td><td>255</td><td>16384</td></tr>
+                    <tr><td>Windows</td><td>128</td><td>65,535 bytes to 1 Gigabyte</td></tr>
+                    <tr><td>Cisco Routers</td><td>255</td><td>4128</td></tr>
+                    <tr><td>Solaris</td><td>255</td><td>8760</td></tr>
+                    <tr><td>AIX</td><td>255</td><td>16384</td></tr>
+                </tbody>
+            </table>
+            <h3>OS Discovery with AI</h3>
+            <p>AI can leverage tools like ping and Nmap to identify OS details and automate the process.</p>
+        </section>
+
+        <section class="section-content">
+            <h2>10. Scanning Beyond IDS and Firewall</h2>
+            <p>Attackers use various techniques to evade Intrusion Detection Systems (IDS) and firewalls.</p>
+            <ul>
+                <li>Packet Fragmentation</li>
+                <li>Source Routing</li>
+                <li>Source Port Manipulation</li>
+                <li>IP Address Decoy</li>
+                <li>IP Address Spoofing</li>
+                <li>MAC Address Spoofing</li>
+                <li>Creating Custom Packets</li>
+                <li>Randomizing Host Order</li>
+                <li>Sending Bad Checksums</li>
+                <li>Proxy Servers</li>
+                <li>Anonymizers</li>
+            </ul>
+        </section>
+    </div>
+</body>
+</html>

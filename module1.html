@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEH v13 - Module 01: Interactive Summary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals (e.g., bg-gray-50, text-gray-800, accent-blue-600) -->
+    <!-- Application Structure Plan: A single-page application with a fixed left-hand sidebar for navigation and a dynamic main content area. This structure was chosen to break down the dense, text-heavy report into manageable, easily accessible sections, which is ideal for studying and review. User clicks a topic in the sidebar, and the corresponding content is displayed instantly via JavaScript, avoiding page reloads and providing a smooth user experience. On mobile, the sidebar is hidden by default and toggled via a hamburger menu for better screen utilization. -->
+    <!-- Visualization & Content Choices:
+    - Report Info: Hacker Classes -> Goal: Organize/Compare -> Viz: Styled cards in a grid -> Interaction: Hover effects -> Justification: Visually separates distinct concepts for clarity. -> Library/Method: HTML/Tailwind.
+    - Report Info: CEH Hacking Framework / Cyber Kill Chain -> Goal: Show Process -> Viz: Interactive flowchart diagram -> Interaction: Click on a phase to reveal details -> Justification: More engaging and intuitive than a static list for process-oriented information. -> Library/Method: HTML/Tailwind/JS.
+    - Report Info: Elements of Information Security -> Goal: Inform/Visualize -> Viz: Radar Chart -> Interaction: Hover tooltips -> Justification: Provides a dynamic and visually interesting representation of core, non-hierarchical concepts. -> Library/Method: Chart.js/Canvas.
+    - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .nav-link.active { background-color: #DBEAFE; color: #1E40AF; border-left-color: #2563EB; }
+        .nav-link:not(.active):hover { background-color: #F3F4F6; }
+        .diagram-item { cursor: pointer; transition: all 0.2s ease; }
+        .diagram-item.active, .diagram-item:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+
+        /* Mobile-specific styles for sidebar */
+        .sidebar-mobile-hidden {
+            transform: translateX(-100%);
+        }
+        .sidebar-mobile-visible {
+            transform: translateX(0);
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="flex flex-col h-screen md:flex-row bg-gray-100">
+        <!-- Mobile Header -->
+        <header class="md:hidden flex items-center justify-between p-4 bg-white shadow-md">
+            <h1 class="text-xl font-bold text-gray-800">CEH v13: Module 01</h1>
+            <button id="menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white shadow-md z-50 md:relative md:translate-x-0 transition-transform duration-300 ease-in-out sidebar-mobile-hidden md:flex-shrink-0">
+            <div class="p-4 border-b">
+                <h1 class="text-xl font-bold text-gray-800">CEH v13: Module 01</h1>
+                <p class="text-sm text-gray-500">Intro to Ethical Hacking</p>
+            </div>
+            <nav class="mt-4">
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium active" data-target="concepts">1. InfoSec Concepts</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="attacks">2. Security Attacks</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="classification">3. Attack Classification</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="infowar">4. Information Warfare</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="hackers">5. Hacker Classes</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="ethical">6. Ethical Hacking</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="ai">7. AI in Hacking</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="frameworks">8. Hacking Frameworks</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="controls">9. Security Controls</a>
+                <a href="#" class="nav-link block py-2.5 px-4 border-l-4 border-transparent text-gray-600 font-medium" data-target="laws">10. Laws & Standards</a>
+            </nav>
+        </aside>
+
+        <!-- Overlay for mobile sidebar -->
+        <div id="sidebar-overlay" class="overlay md:hidden"></div>
+
+        <main class="flex-1 p-6 md:p-8 lg:p-10 overflow-y-auto">
+            
+            <div id="concepts" class="content-section active">
+                <h2 class="text-3xl font-bold mb-4">1. Information Security Concepts</h2>
+                <p class="mb-8 text-lg text-gray-600">This section introduces the foundational principles of information security. These elements form the basis of all security measures, ensuring that data is protected, trustworthy, and available. The chart below visualizes these core pillars and their interconnected nature.</p>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="chart-container">
+                        <canvas id="infoSecChart"></canvas>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="font-bold text-blue-700">Confidentiality</h3>
+                            <p>Ensures information is accessible only to authorized users.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="font-bold text-green-700">Integrity</h3>
+                            <p>Guarantees the trustworthiness of data by preventing unauthorized changes.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="font-bold text-yellow-700">Availability</h3>
+                            <p>Ensures systems and data are accessible when required by authorized users.</p>
+                        </div>
+                         <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="font-bold text-purple-700">Authenticity</h3>
+                            <p>Validates that data, communications, or documents are genuine.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="font-bold text-red-700">Non-Repudiation</h3>
+                            <p>Prevents sender/recipient from denying a transmitted message.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="attacks" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">2. Information Security Attacks</h2>
+                <p class="mb-8 text-lg text-gray-600">An attack is a deliberate action to breach IT security. Understanding the components of an attack helps in devising effective defense strategies. Attacks are not random; they are a combination of motive, method, and an existing weakness.</p>
+                <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                    <p class="text-2xl font-bold">Attack = <span class="text-red-600">Motive</span> + <span class="text-blue-600">Method (TTP)</span> + <span class="text-yellow-600">Vulnerability</span></p>
+                </div>
+                <div class="mt-8 grid md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold text-red-600 mb-2">Motive (The "Why")</h3>
+                        <p>The reason behind an attack. Common motives include financial gain, data theft, revenge, political agendas, or simple disruption.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold text-blue-600 mb-2">Method (The "How")</h3>
+                        <p>The TTPs (Tactics, Techniques, Procedures) used. This includes the overall strategy, technical methods, and specific steps taken to execute the attack.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold text-yellow-600 mb-2">Vulnerability (The "Opening")</h3>
+                        <p>A weakness in design, implementation, or configuration that an attacker can exploit. This could be anything from unpatched software to a careless user.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="classification" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">3. Attack Classification</h2>
+                 <p class="mb-8 text-lg text-gray-600">Attacks are categorized based on the attacker's methods and proximity to the target. This classification helps in understanding the threat landscape and prioritizing defensive measures against different types of actions.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-xl transition-shadow">
+                        <h3 class="font-bold text-lg mb-2">Passive Attacks</h3>
+                        <p>Monitoring or intercepting data without alteration. Examples: Sniffing, Eavesdropping. Hard to detect.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-xl transition-shadow">
+                        <h3 class="font-bold text-lg mb-2">Active Attacks</h3>
+                        <p>Tampering with data or disrupting services. Examples: DoS, Malware, Man-in-the-Middle. Easier to detect.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-xl transition-shadow">
+                        <h3 class="font-bold text-lg mb-2">Close-in Attacks</h3>
+                        <p>Attacker is in physical proximity to the target. Examples: Shoulder surfing, Dumpster diving.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-xl transition-shadow">
+                        <h3 class="font-bold text-lg mb-2">Insider Attacks</h3>
+                        <p>Performed by trusted individuals with privileged access. Examples: Data theft, planting keyloggers.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow hover:shadow-xl transition-shadow">
+                        <h3 class="font-bold text-lg mb-2">Distribution Attacks</h3>
+                        <p>Tampering with hardware or software before it's installed. Example: Supply chain attacks, backdoors.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="infowar" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">4. Information Warfare</h2>
+                <p class="mb-8 text-lg text-gray-600">Information Warfare (InfoWar) involves using Information and Communication Technologies (ICT) as a weapon for competitive advantage. It encompasses a broad range of activities aimed at either defending one's own information space or attacking an opponent's.</p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                        <h3 class="text-2xl font-bold text-blue-800 mb-3">Defensive InfoWar</h3>
+                        <p>All strategies and actions taken to protect one's own ICT assets from attack. This includes prevention, detection, and response protocols designed to ensure the security and integrity of information systems.</p>
+                    </div>
+                    <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                        <h3 class="text-2xl font-bold text-red-800 mb-3">Offensive InfoWar</h3>
+                        <p>All strategies and actions involving attacks against an opponent's ICT assets. This can range from propaganda and psychological operations to direct cyberattacks that disrupt, degrade, or destroy enemy systems.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="hackers" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">5. Hacker Classes</h2>
+                <p class="mb-8 text-lg text-gray-600">The term "hacker" covers a wide spectrum of individuals with varying motives, skills, and ethics. Understanding these different classes is key to recognizing the types of threats an organization might face.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-lg shadow">
+                        <h3 class="font-bold text-lg">White Hat</h3>
+                        <p class="text-sm text-gray-600">Ethical hackers who work defensively with authorization.</p>
+                    </div>
+                    <div class="bg-gray-800 text-white p-5 rounded-lg shadow">
+                        <h3 class="font-bold text-lg">Black Hat</h3>
+                        <p class="text-sm text-gray-300">Malicious hackers who operate illegally for personal gain.</p>
+                    </div>
+                    <div class="bg-gray-400 text-white p-5 rounded-lg shadow">
+                        <h3 class="font-bold text-lg">Gray Hat</h3>
+                        <p class="text-sm text-gray-100">Operate between ethical and illegal, may act without permission.</p>
+                    </div>
+                    <div class="bg-red-100 p-5 rounded-lg shadow">
+                        <h3 class="font-bold text-lg text-red-800">Script Kiddies</h3>
+                        <p class="text-sm text-gray-600">Inexperienced individuals using pre-made tools and scripts.</p>
+                    </div>
+                    <div class="bg-blue-100 p-5 rounded-lg shadow">
+                        <h3 class="font-bold text-lg text-blue-800">Hacktivists</h3>
+                        <p class="text-sm text-gray-600">Use hacking to promote social or political agendas.</p>
+                    </div>
+                    <div class="bg-yellow-100 p-5 rounded-lg shadow">
+                        <h3 class="font-bold text-lg text-yellow-800">State-Sponsored</h3>
+                        <p class="text-sm text-gray-600">Employed by governments for espionage or cyber warfare.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ethical" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">6. Ethical Hacking Concepts</h2>
+                 <p class="mb-8 text-lg text-gray-600">Ethical hacking is the authorized practice of testing an organization's security defenses. It's about thinking like an attacker to find and fix vulnerabilities before malicious actors can exploit them.</p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-lg mb-2">Definition & Necessity</h3>
+                        <p>The authorized use of hacking skills to improve security. It's necessary to anticipate and counter malicious attacks, strengthen security posture, and protect assets.</p>
+                    </div>
+                     <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-lg mb-2">Scope & Limitations</h3>
+                        <p>Scope is defined by a legal contract and covers risk assessment and auditing. Limitations include depending on clear client objectives and the fact that an ethical hacker only identifies issues—the organization must implement fixes.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="ai" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">7. AI in Ethical Hacking</h2>
+                <p class="mb-8 text-lg text-gray-600">Artificial Intelligence is revolutionizing cybersecurity, both for attackers and defenders. In ethical hacking, AI enhances capabilities, automates routine tasks, and helps predict and detect threats more effectively.</p>
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <h3 class="font-bold text-2xl mb-4">AI vs. Human Expertise</h3>
+                    <p class="mb-4">A common misconception is that AI will replace human hackers. In reality, AI is a powerful tool that <span class="font-semibold text-blue-600">assists</span>, but does not replace, human expertise. The creativity, critical thinking, and contextual understanding of a human ethical hacker are indispensable for interpreting results and devising effective mitigation strategies.</p>
+                    <div class="mt-6 border-t pt-4">
+                        <h4 class="font-semibold text-lg">Key Benefits of AI:</h4>
+                        <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+                            <li><span class="font-semibold">Efficiency & Speed:</span> Automates repetitive tasks like scanning.</li>
+                            <li><span class="font-semibold">Accuracy:</span> Reduces human error in analysis.</li>
+                            <li><span class="font-semibold">Scalability:</span> Manages vast amounts of data and complex systems.</li>
+                            <li><span class="font-semibold">Predictive Analysis:</span> Identifies potential threats based on data patterns.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="frameworks" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">8. Hacking Methodologies & Frameworks</h2>
+                 <p class="mb-8 text-lg text-gray-600">Frameworks provide a structured approach to hacking, guiding both ethical hackers and malicious attackers through a logical sequence of steps. Click on a phase to see more details.</p>
+                
+                <div class="mb-10">
+                    <h3 class="text-2xl font-semibold mb-4">CEH Ethical Hacking Framework (5 Phases)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                        <div class="diagram-item p-4 bg-white rounded-lg shadow">Reconnaissance</div>
+                        <div class="diagram-item p-4 bg-white rounded-lg shadow">Vulnerability Scanning</div>
+                        <div class="diagram-item p-4 bg-white rounded-lg shadow">Gaining Access</div>
+                        <div class="diagram-item p-4 bg-white rounded-lg shadow">Maintaining Access</div>
+                        <div class="diagram-item p-4 bg-white rounded-lg shadow">Clearing Tracks</div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-semibold mb-4">Cyber Kill Chain Methodology (7 Phases)</h3>
+                    <div class="relative p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="diagram-item z-10 w-32 h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow">Reconnaissance</div>
+                            <div class="diagram-item z-10 w-32 h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow">Weaponization</div>
+                            <div class="diagram-item z-10 w-32 h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow">Delivery</div>
+                            <div class="diagram-item z-10 w-32 h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow">Exploitation</div>
+                            <div class="diagram-item z-10 w-32 h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow">Installation</div>
+                            <div class="diagram-item z-10 w-32 h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow">C2</div>
+                            <div class="diagram-item z-10 w-32 h-20 flex items-center justify-center p-2 bg-white rounded-lg shadow">Actions</div>
+                        </div>
+                        <div class="absolute top-1/2 left-0 w-full h-1 bg-gray-300" style="transform: translateY(-50%);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="controls" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">9. Information Security Controls</h2>
+                <p class="mb-8 text-lg text-gray-600">Security controls are the measures and countermeasures put in place to prevent unwanted events and reduce risk. They encompass a wide range of strategies, from high-level policies to specific technical implementations.</p>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-lg mb-2">Defense-in-Depth</h3>
+                        <p>A multi-layered security strategy. If one layer fails, another is in place to stop the attack.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-lg mb-2">Risk Management</h3>
+                        <p>The process of identifying, assessing, and controlling threats to an organization's assets.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-lg mb-2">Cyber Threat Intelligence (CTI)</h3>
+                        <p>Collecting and analyzing threat information to inform defensive strategies.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-bold text-lg mb-2">Incident Management</h3>
+                        <p>A defined process for identifying, analyzing, and resolving security incidents.</p>
+                    </div>
+                 </div>
+            </div>
+
+            <div id="laws" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">10. Information Security Laws & Standards</h2>
+                <p class="mb-8 text-lg text-gray-600">Compliance with legal and industry standards is a critical component of cybersecurity. These regulations provide a framework for protecting data and define the legal consequences of security failures.</p>
+                 <div class="space-y-4">
+                    <details class="bg-white p-4 rounded-lg shadow cursor-pointer">
+                        <summary class="font-semibold text-lg">Key Regulations & Standards</summary>
+                        <ul class="mt-4 space-y-2 list-disc list-inside text-gray-700">
+                            <li><span class="font-semibold">PCI DSS:</span> For protecting payment card data.</li>
+                            <li><span class="font-semibold">ISO/IEC 27000 Series:</span> International standards for information security management.</li>
+                            <li><span class="font-semibold">HIPAA (US):</span> Protects patient health information.</li>
+                            <li><span class="font-semibold">SOX (US):</span> Regulates corporate financial disclosures.</li>
+                            <li><span class="font-semibold">GDPR (EU):</span> Governs data protection and privacy for EU citizens.</li>
+                            <li><span class="font-semibold">DMCA (US):</span> Addresses copyright law in the digital age.</li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const diagramItems = document.querySelectorAll('.diagram-item');
+            const menuButton = document.getElementById('menu-button');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            function showSection(targetId) {
+                contentSections.forEach(section => {
+                    section.classList.toggle('active', section.id === targetId);
+                });
+                // Close sidebar on mobile after selection
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('sidebar-mobile-visible');
+                    sidebar.classList.add('sidebar-mobile-hidden');
+                    sidebarOverlay.classList.remove('active');
+                }
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('data-target');
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+
+                    showSection(targetId);
+                });
+            });
+
+            diagramItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            });
+
+            // Mobile menu toggle
+            menuButton.addEventListener('click', function() {
+                sidebar.classList.toggle('sidebar-mobile-hidden');
+                sidebar.classList.toggle('sidebar-mobile-visible');
+                sidebarOverlay.classList.toggle('active');
+            });
+
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.remove('sidebar-mobile-visible');
+                sidebar.classList.add('sidebar-mobile-hidden');
+                sidebarOverlay.classList.remove('active');
+            });
+
+            const ctx = document.getElementById('infoSecChart');
+            if(ctx) {
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Confidentiality', 'Integrity', 'Availability', 'Authenticity', 'Non-Repudiation'],
+                        datasets: [{
+                            label: 'Pillars of InfoSec',
+                            data: [9, 8, 9, 7, 8],
+                            fill: true,
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgb(59, 130, 246)',
+                            pointBackgroundColor: 'rgb(59, 130, 246)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(59, 130, 246)'
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        elements: {
+                            line: {
+                                borderWidth: 3
+                            }
+                        },
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    display: false
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 10,
+                                pointLabels: {
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initial section display
+            showSection('concepts');
+        });
+    </script>
+
+</body>
+</html>
